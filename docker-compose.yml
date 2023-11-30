@@ -1,0 +1,56 @@
+version: "3.8"
+services:
+  app:
+    container_name: nest-base-app
+    build:
+      context: ./
+      dockerfile: ./docker/development/Dockerfile
+    working_dir: /home/node/app
+    # command: npm start
+    restart: no
+    tty: true
+    volumes:
+      - .:/home/node/app
+      - /home/node/app/node_modules
+    networks:
+      - nest-base-app-network
+    depends_on:
+      - database
+    ports:
+      - ${PORT}:${PORT}
+    environment:
+      APP_ENV: development
+      PORT: ${PORT}
+      ENABLE_SWAGGER: ${ENABLE_SWAGGER}
+      ENABLE_CORS: ${ENABLE_CORS}
+
+  database:
+    container_name: nest-base-app-database
+    image: postgres
+    restart: no
+    volumes:
+      - nest-base-app-database:/var/lib/postgres
+    environment:
+      POSTGRES_DB: ${DB_DATABASE}
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - ${DB_PORT}:${DB_PORT}
+    networks:
+      - nest-base-app-network
+
+  redis:
+    container_name: nest-base-app-redis
+    image: redis/redis-stack-server:latest
+    restart: no
+    ports:
+      - ${REDIS_PORT}:${REDIS_PORT}
+    networks:
+      - nest-base-app-network
+
+networks:
+  nest-base-app-network:
+
+volumes:
+  nest-base-app-database:
+    driver: local
